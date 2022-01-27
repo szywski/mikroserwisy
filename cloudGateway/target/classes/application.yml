@@ -1,0 +1,75 @@
+server:
+  port: 9191
+
+spring:
+  application:
+    name: CLOUD-GATEWAY-API
+  cloud:
+    gateway:
+      routes:
+        - id: USER-SERVICE
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userServiceCircuitBreaker
+                fallbackuri: forward:/userServiceFail
+        - id: BACKOFFICE-SERVICE
+          uri: lb://BACKOFFICE-SERVICE
+          predicates:
+            - Path=/backoffices/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: backofficeServiceCircuitBreaker
+                fallbackuri: forward:/backofficeServiceFail
+      metrics:
+        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: 'always'
+
+#resilience4j.circuitbreaker:
+#  configs:
+#    default:
+#      slidingWindowSize: 10
+#      minimumNumberOfCalls: 5
+#      permittedNumberOfCallsInHalfOpenState: 3
+#      automaticTransitionFromOpenToHalfOpenEnabled: true
+#      waitDurationInOpenState: 2s
+#      failureRateThreshold: 5
+#      eventConsumerBufferSize: 10
+#      slowCallDurationThreshold: 200ms
+#      slowCallRateThreshold: 30
+#      recordExceptions:
+#        - org.springframework.web.client.HttpServerErrorException
+#        - java.io.IOException
+#      ignoreExceptions:
+#        - java.lang.IllegalStateException
+#    shared:
+#      slidingWindowSize: 100
+#      permittedNumberOfCallsInHalfOpenState: 30
+#      waitDurationInOpenState: 1s
+#      failureRateThreshold: 50
+#      eventConsumerBufferSize: 10
+#      ignoreExceptions:
+#        - java.lang.IllegalStateException
+#
+#
+#resilience4j.timelimiter:
+#  time-limiter-aspect-order: 398
+#  configs:
+#    default:
+#      timeoutDuration: 1s
+#      cancelRunningFuture: false
+#  instances:
+#    backendB:
+#      timeoutDuration: 250ms
